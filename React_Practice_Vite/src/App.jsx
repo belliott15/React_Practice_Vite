@@ -1,35 +1,44 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from "react";
+import { fetchCardTypes, fetchCards } from "./State/fetch_utils.js";
+import Card from "./card";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [cards, setCards] = useState([]);
+  const [types, setTypes] = useState([]);
+
+  useEffect(() => {
+    async function getAllCards() {
+      const allCards = await fetchCards();
+      const types = await fetchCardTypes();
+      setTypes(types.types);
+      setCards(allCards.cards);
+    }
+    console.log(types);
+    getAllCards();
+  }, [types]);
+
+  async function handleChange(e) {
+    e.preventDefault();
+
+    const typeCard = await fetchCards();
+  }
 
   return (
     <>
+      <select onChange={(e) => handleChange(e.target)}>
+        <option>all</option>
+        {types.map((type) => (
+          <option key={type}>{type}</option>
+        ))}
+      </select>
       <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        {cards.map((card) => (
+          <Card key={card.id} card={card} />
+        ))}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
