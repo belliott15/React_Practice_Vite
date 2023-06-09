@@ -1,42 +1,54 @@
 import { useState, useEffect } from "react";
-import { fetchCardTypes, fetchCards } from "./State/fetch_utils.js";
-import Card from "./card";
 import "./App.css";
+import { data } from "./State/data.js";
 
 function App() {
-  const [cards, setCards] = useState([]);
-  const [types, setTypes] = useState([]);
+  const [userData, setUserData] = useState([]);
+  const [sortedData, setSortedData] = useState([]);
+  const [update, setUpdate] = useState(false);
+
+  const eliminateDuplicates = (arr) => {
+    if (arr.length < 1) return [];
+    const reduced = arr.reduce((prev, curr) => {
+      prev[curr] = (prev[curr] || 0) + 1;
+      return prev;
+    }, {});
+    return reduced;
+  };
 
   useEffect(() => {
-    async function getAllCards() {
-      const allCards = await fetchCards();
-      const types = await fetchCardTypes();
-      setTypes(types.types);
-      setCards(allCards.cards);
+    async function getData() {
+      await setUserData(data);
+      const first_names = userData.map((user) => user.first_name);
+      const sorted_first_names = first_names.sort();
+      const reduced = eliminateDuplicates(sorted_first_names);
+      // console.log("reduced", Object.keys(reduced));
+      setSortedData(Object.keys(reduced));
     }
-    console.log(types);
-    getAllCards();
-  }, [types]);
+    getData();
+  }, [update]);
 
-  async function handleChange(e) {
-    e.preventDefault();
-
-    const typeCard = await fetchCards();
-  }
+  const handleClick = () => {
+    return update ? setUpdate(false) : setUpdate(true);
+  };
 
   return (
     <>
-      <select onChange={(e) => handleChange(e.target)}>
-        <option>all</option>
-        {types.map((type) => (
-          <option key={type}>{type}</option>
-        ))}
-      </select>
-      <div>
-        {cards.map((card) => (
-          <Card key={card.id} card={card} />
-        ))}
-      </div>
+      <h1>Hello World</h1>
+      {update ? (
+        <button onClick={handleClick}>A-z First Name</button>
+      ) : (
+        <button onClick={handleClick}>First & Last Name</button>
+      )}
+
+      {!update
+        ? userData.map((user) => (
+            <p key={user.id}>
+              {" "}
+              {user.first_name} {user.last_name}{" "}
+            </p>
+          ))
+        : sortedData.map((user, i) => <p key={user + i}>{user}</p>)}
     </>
   );
 }
